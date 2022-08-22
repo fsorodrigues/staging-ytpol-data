@@ -13,27 +13,48 @@ bucket = getenv('bucket')
 
 # datasets
 datasets = [
-  # {'url': 'youtube-paper/updated plots/all_7K/fig2A_ledwich.csv'},
-  # {'url': 'youtube-paper/updated plots/all_1K/fig1_pnas_mean.csv'},
-  # {'url': 'youtube-paper/updated plots/all_7K/fig2B_ledwich.csv'},
-  # {'url': 'youtube-paper/updated plots/all_7K/fig3A_ledwich.csv'},
-  # {'url': 'youtube-paper/updated plots/all_7K/fig3B_ledwich.csv'},
-  # {'url': 'youtube-paper/outdated plots/Fig4_transition_matrix.txt', 'sep': '\s+'},
-  {'url': 'youtube-paper/outdated plots/Fig5.txt', 'sep': '\s+'},
+  {'url': 'updated plots/all_1K/fig1_pnas_mean.csv', 'out_name': 'fig1_pnas_mean.csv'},
+  {'url': 'updated plots/all_7K/fig2A_ledwich.csv', 'out_name': 'fig2a_ledwich.csv'},
+  {'url': 'updated plots/all_7K/fig2B_ledwich.csv', 'out_name': 'fig2b_ledwich.csv'},
+  {'url': 'updated plots/all_7K/fig3A_ledwich.csv', 'out_name': 'fig3a_smoothed.csv'},
+  {'url': 'updated plots/all_7K/fig3B_ledwich.csv', 'out_name': 'fig3b_smoothed.csv'},
+  {'url': 'outdated plots/Fig4_transition_matrix.txt', 'sep': '\s+', 'out_name': 'fig4.csv'},
+  {'url': 'outdated plots/Fig5.txt', 'sep': '\s+', 'out_name': 'fig5.csv'},
+  {'url': 'outdated plots/Fig6_heatmap_matrix.txt', 'sep': '\s+', 'out_name': 'fig6.csv'},
+  {'url': 'outdated plots/Fig7A_one_sessiontype_60_10.txt', 'sep': '\s+', 'headers': range(0, 15), 'out_name': 'fig7a.csv'},
+  {'url': 'outdated plots/Fig7B_meanr.txt', 'headers': range(0, 26), 'out_name': 'fig7b.csv'},
+  {'url': 'updated plots/all_7K/table2_ledwich.csv', 'out_name': 'table2.csv'},
+  # {'url': 'daily_collections/video_count.csv', 'out_name': 'video_count.csv'},
 ]
+# credentials
 creds = {
   "key": AWS_ACCESS_KEY_ID,
   "secret": AWS_SECRET_ACCESS_KEY
 }
 
+# iterate over files that need parsing 
 for file in datasets:
-  data = pd.read_csv(
-    f's3://{bucket}/{file["url"]}',
-    sep=(file['sep'] if file['sep'] else ','),
-    storage_options=creds
-  )
+  # a couple files lack headers, so we have to manually introduce them
+  if ('headers' in file.keys()):
+    data = pd.read_csv(
+      f's3://{bucket}/youtube-paper/{file["url"]}',
+      sep=(file['sep'] if file['sep'] else ','), # handles different separators
+      names=[x for x in file['headers']],
+      storage_options=creds
+    )
+  # the majority of files can be loaded more easily
+  else:
+    data = pd.read_csv(
+      f's3://{bucket}/youtube-paper/{file["url"]}',
+      sep=(file['sep'] if file['sep'] else ','), # handles different separators
+      storage_options=creds
+    )
 
+  # find the appropriate parse defined in a different file
   parser = parsers.steps[file["url"]]
 
-  print(parser(data))
+  # parse data
+  out_data = parser(data)
+
+  # save data to different location
   

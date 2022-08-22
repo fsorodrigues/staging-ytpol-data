@@ -1,5 +1,4 @@
 # modules
-from functools import reduce
 from pandas import Categorical
 
 # local modules

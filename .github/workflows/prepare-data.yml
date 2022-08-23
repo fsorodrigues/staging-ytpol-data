@@ -1,0 +1,38 @@
+name: Prepare data
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '30 */2 * * *' # UTC time
+
+jobs:
+  prepare-data:
+    concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv
+      - name: Create a virtual environment
+        run: |
+          pipenv install
+      - name: Prepare data
+        run: |
+          pipenv run python parse-data.py
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          bucket: ${{ secrets.bucket }}
+      - name: Delete the virtual environment
+        run: |
+          pipenv --rm

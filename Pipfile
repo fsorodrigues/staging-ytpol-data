@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 numpy = "*"
 pandas = "*"
-boto3 = "*"
 s3fs = "*"
 
 [dev-packages]

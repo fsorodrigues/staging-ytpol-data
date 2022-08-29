@@ -35,10 +35,11 @@ creds = {
 # iterate over files that need parsing 
 for file in datasets:
   # a couple files lack headers, so we have to manually introduce them
-  if ('headers' in file.keys()):
+  keys = file.keys()
+  if ('headers' in keys):
     data = pd.read_csv(
       f's3://{bucket}/youtube-paper/{file["url"]}',
-      sep=(file['sep'] if file['sep'] else ','), # handles different separators
+      sep=(file['sep'] if ('sep' in keys) else ','), # handles different separators
       names=[x for x in file['headers']],
       storage_options=creds
     )
@@ -46,7 +47,7 @@ for file in datasets:
   else:
     data = pd.read_csv(
       f's3://{bucket}/youtube-paper/{file["url"]}',
-      sep=(file['sep'] if file['sep'] else ','), # handles different separators
+      sep=(file['sep'] if ('sep' in keys) else ','), # handles different separators
       storage_options=creds
     )
 
@@ -57,4 +58,4 @@ for file in datasets:
   out_data = parser(data)
 
   # save data to different location
-  
+  out_data.to_csv(f's3://{bucket}/youtube-paper/processed/{file["out_name"]}', index=False)

@@ -4,7 +4,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '30 */2 * * *' # UTC time
+    - cron: '0 1 15 * *' # 1:00 on every 15th (UTC time)
 
 jobs:
   prepare-data:
